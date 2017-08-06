@@ -1,0 +1,10 @@
+<!DOCTYPE RCC><RCC version="1.0">
+    <qresource prefix="/Icons">
+        <file alias="AppIcon240">images/appicon240.png</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>images/lockicon.png</file>
+        <file>images/lockicon_white.png</file>
+        <file>2fa_de.qm</file>
+    </qresource>
+</RCC>
