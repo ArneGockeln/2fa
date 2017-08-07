@@ -2,7 +2,6 @@
 // Created by Arne Gockeln on 28.07.17.
 //
 
-#include <QDebug>
 #include <QVBoxLayout>
 #include <QMessageBox>
 #include <QApplication>
@@ -10,7 +9,6 @@
 #include "Storage.h"
 #include "Auth.h"
 #include <QClipboard>
-#include "ServiceItem.h"
 
 using namespace TwoFA;
 
