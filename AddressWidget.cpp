@@ -54,16 +54,22 @@ AddressWidget::AddressWidget(QWidget *t_parent)
 
 }
 
+/**
+ * Add Entry Dialog
+ */
 void AddressWidget::showAddEntryDialog() {
   AddDialog addDialog;
 
-  if(addDialog.exec()){
-    ServiceItem serviceItem;
-    serviceItem.setName(addDialog.m_nameText->text());
-    serviceItem.setSecret(addDialog.m_secretText->text());
-    serviceItem.setInterval(addDialog.m_validIntervalText->text().toInt());
+  if(addDialog.exec() == QDialog::Accepted)
+  {
+    if(addDialog.validateAddEditDialog()){
+      ServiceItem serviceItem;
+      serviceItem.setName(addDialog.m_nameText->text());
+      serviceItem.setSecret(addDialog.m_secretText->text());
+      serviceItem.setInterval(addDialog.m_validIntervalText->text().toInt());
 
-    addEntry(serviceItem);
+      addEntry(serviceItem);
+    }
   }
 }
 
@@ -126,46 +132,32 @@ void AddressWidget::editEntry() {
   addDialog.m_secretText->setText(serviceItem.getSecret());
   addDialog.m_validIntervalText->setText(QString::number(serviceItem.getInterval()));
 
-  if(addDialog.exec()){
-    // name text
-    QString newName = addDialog.m_nameText->text().trimmed();
-    if(newName.isEmpty()){
-      QMessageBox::information(this, tr("Info"), tr("Name is empty!"));
-    }
+  if(addDialog.exec() == QDialog::Accepted){
+    if(addDialog.validateAddEditDialog()){
+      // name text
+      QString newName = addDialog.m_nameText->text();
+      if(newName != serviceItem.getName()){
+        QModelIndex index = m_table->index(row, 0, QModelIndex());
+        m_table->setData(index, newName, Qt::EditRole);
+      }
 
-    if(newName != serviceItem.getName()){
-      QModelIndex index = m_table->index(row, 0, QModelIndex());
-      m_table->setData(index, newName, Qt::EditRole);
-    }
+      // secret text
+      QString newSecret = addDialog.m_secretText->text();
+      if(newSecret != serviceItem.getSecret()){
+        QModelIndex index = m_table->index(row, 1, QModelIndex());
+        m_table->setData(index, newSecret, Qt::EditRole);
+      }
 
-    // secret text
-    QString newSecret = addDialog.m_secretText->text().trimmed().simplified();
-    // remove whitespaces from simplified ascii 32
-    newSecret.replace(" ", "");
-    if(newSecret.isEmpty()){
-      QMessageBox::information(this, tr("Info"), tr("Secret is empty!"));
-      return;
-    }
+      // valid interval text
+      QString newValidInterval = addDialog.m_validIntervalText->text();
+      if(newValidInterval != serviceItem.getInterval()){
+        QModelIndex index = m_table->index(row, 2, QModelIndex());
+        m_table->setData(index, newValidInterval, Qt::EditRole);
+      }
 
-    if(newSecret != serviceItem.getSecret()){
-      QModelIndex index = m_table->index(row, 1, QModelIndex());
-      m_table->setData(index, newSecret, Qt::EditRole);
+      // write to file
+      writeToFile();
     }
-
-    // valid interval text
-    QString newValidInterval = addDialog.m_validIntervalText->text().trimmed();
-    if(newValidInterval.isEmpty()){
-      QMessageBox::information(this, tr("Info"), tr("Interval is empty!"));
-      return;
-    }
-
-    if(newValidInterval != serviceItem.getInterval()){
-      QModelIndex index = m_table->index(row, 2, QModelIndex());
-      m_table->setData(index, newValidInterval, Qt::EditRole);
-    }
-
-    // write to file
-    writeToFile();
   }
 }
 

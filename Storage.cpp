@@ -13,12 +13,12 @@
 
 using namespace TwoFA;
 
-// will append to /Users/<username>/Documents/
+// will append to /Users/<username>/
 #ifndef kSTORAGE_DIR
 #define kSTORAGE_DIR ".twofa"
 #endif
 
-// will append to /Users/<username>/Documents/<kSTORAGE_DIR>/
+// will append to /Users/<username>/<kSTORAGE_DIR>/
 #ifndef kSTORAGE_FILENAME
 #define kSTORAGE_FILENAME "twofa.xml"
 #endif
@@ -42,7 +42,7 @@ Storage::Storage() {
  * if not create it
  */
 void Storage::checkStorage() {
-  QString storagePath = QString(QStandardPaths::writableLocation(QStandardPaths::DocumentsLocation));
+  QString storagePath = QString(QStandardPaths::writableLocation(QStandardPaths::HomeLocation));
   storagePath.append("/");
   storagePath.append(kSTORAGE_DIR);
 
@@ -58,7 +58,21 @@ void Storage::checkStorage() {
     // if the file does not exist, it will be created
     QFile file(m_filename);
     if(file.open(QIODevice::ReadWrite)){
-      qDebug() << "file exists" << m_filename;
+      // write default data
+      QXmlStreamWriter xmlStreamWriter(&file);
+      xmlStreamWriter.setAutoFormatting(true);
+
+      xmlStreamWriter.writeStartDocument();
+      xmlStreamWriter.writeDTD("<!DOCTYPE twofa>");
+      xmlStreamWriter.writeStartElement("twofa");
+      xmlStreamWriter.writeAttribute("version", "1.0");
+      xmlStreamWriter.writeStartElement("sites");
+      xmlStreamWriter.writeEndElement();
+      xmlStreamWriter.writeEndDocument();
+
+      file.close();
+    } else {
+      QMessageBox::critical(Q_NULLPTR, QObject::tr("Error"), QObject::tr("Cannot open file %1:\n%2.").arg(m_filename).arg(file.errorString()));
     }
   }
 }

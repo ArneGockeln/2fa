@@ -20,6 +20,9 @@ MainWindow::MainWindow() {
   connect(m_addressWidget->getTableModel(), SIGNAL(dataChanged(QModelIndex, QModelIndex)),
           this, SLOT(onUpdateModel()));
 
+  // check storage
+  Storage::getInstance()->checkStorage();
+
   auto *mainLayout = new QVBoxLayout;
   mainLayout->addWidget(m_addressWidget);
   setLayout(mainLayout);
@@ -32,8 +35,6 @@ MainWindow::MainWindow() {
   setMaximumSize(480, 320);
   resize(480, 320);
   setWindowFlags(Qt::Dialog | Qt::WindowStaysOnTopHint);
-
-  Storage::getInstance()->checkStorage();
 }
 
 /**
@@ -123,31 +124,30 @@ void MainWindow::addActionList(){
 
   QList<ServiceItem> serviceList = tableModel->getList();
 
-  if(serviceList.isEmpty()){
-    return;
-  }
-
   m_trayIconMenu->clear();
 
-  for(int i = 0; i < serviceList.size(); i++){
-    auto serviceItem = serviceList.at(i);
+  if(!serviceList.isEmpty()){
+    for(int i = 0; i < serviceList.size(); i++){
+      auto serviceItem = serviceList.at(i);
 
-    //QString actionName = QString("%2").arg((serviceItem.getInterval() - (time(nullptr) % serviceItem.getInterval()))).arg(serviceItem.getName());
-    QString actionName = serviceItem.getName();
+      //QString actionName = QString("%2").arg((serviceItem.getInterval() - (time(nullptr) % serviceItem.getInterval()))).arg(serviceItem.getName());
+      QString actionName = serviceItem.getName();
 
-    auto *temp = new QAction(actionName, this);
+      auto *temp = new QAction(actionName, this);
 
-    QString dataString = serviceItem.getSecret();
-    dataString.append(":");
-    dataString.append(QString::number(serviceItem.getInterval()));
+      QString dataString = serviceItem.getSecret();
+      dataString.append(":");
+      dataString.append(QString::number(serviceItem.getInterval()));
 
-    QVariant data(dataString);
+      QVariant data(dataString);
 
-    temp->setData(data);
-    m_trayIconMenu->addAction(temp);
+      temp->setData(data);
+      m_trayIconMenu->addAction(temp);
+    }
+
+    m_trayIconMenu->addSeparator();
   }
 
-  m_trayIconMenu->addSeparator();
   m_trayIconMenu->addAction(m_restoreAction);
   m_trayIconMenu->addAction(m_aboutAction);
   m_trayIconMenu->addSeparator();
@@ -167,16 +167,23 @@ void MainWindow::copyToClipboard(QAction *t_action){
     return;
   }
 
-  QStringList actionDataList = actionData.split(":");
-  QString secret = actionDataList.at(0);
-  int interval = actionDataList.at(1).toInt();
+  try {
+    // split string
+    QStringList actionDataList = actionData.split(":");
+    QString secret = actionDataList.at(0);
+    int interval = actionDataList.at(1).toInt();
 
-  // Generate Token
-  uint32_t token = Auth::getInstance()->generateToken(secret, interval);
-  char strToken[16];
-  sprintf(strToken, "%u", token);
-  QString qToken(strToken);
+    // Generate Token
+    uint32_t token = Auth::getInstance()->generateToken(secret, interval);
+    char strToken[16];
+    sprintf(strToken, "%u", token);
+    QString qToken(strToken);
 
-  QClipboard *clipboard = QApplication::clipboard();
-  clipboard->setText(qToken.trimmed());
+    QClipboard *clipboard = QApplication::clipboard();
+    clipboard->setText(qToken.trimmed());
+  } catch(std::invalid_argument& argument){
+    QMessageBox::critical(Q_NULLPTR, tr("Error"), argument.what());
+  } catch(std::exception& exception){
+    QMessageBox::critical(Q_NULLPTR, tr("Error"), exception.what());
+  }
 }

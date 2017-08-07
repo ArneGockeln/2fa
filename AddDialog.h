@@ -12,6 +12,7 @@
 #include <QPushButton>
 #include <QComboBox>
 #include "Presets.h"
+#include <QCloseEvent>
 
 class AddDialog: public QDialog {
   Q_OBJECT
@@ -22,6 +23,7 @@ public:
   QLineEdit *m_secretText;
   QLineEdit *m_validIntervalText;
   QComboBox *m_presetComboBox;
+  bool validateAddEditDialog();
 
 private:
   QLabel *m_nameLabel;
@@ -30,6 +32,7 @@ private:
   QLabel *m_presetLabel;
   QPushButton *m_okButton;
   QPushButton *m_cancelButton;
+
 };
 
 

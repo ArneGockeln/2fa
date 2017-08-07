@@ -15,6 +15,7 @@
 #include <QMenu>
 #include <QAction>
 #include "ServiceItem.h"
+#include "AddDialog.h"
 
 using namespace TwoFA;
 
